@@ -23,6 +23,29 @@ namespace WinformExample
         [DllImport("user32.dll")]
         static extern short VkKeyScan(char ch);
 
+        [DllImport("user32.dll")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hwnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SetWindowPos(IntPtr hWnd, int hWndInsertAfter, int x, int Y, int cx, int cy, int wFlags);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;                             //最左坐标
+            public int Top;                             //最上坐标
+            public int Right;                           //最右坐标
+            public int Bottom;                        //最下坐标
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+
+
         private readonly KeyMouseFactory eventHookFactory = new KeyMouseFactory(Hook.GlobalEvents());
         private readonly KeyboardWatcher keyboardWatcher;
         private readonly MouseWatcher mouseWatcher;
@@ -36,11 +59,14 @@ namespace WinformExample
         private string path;
         private int hotkeyRecordId;
         private int hotkeyPlaybackId;
+        private int hotkeyDemoId;
+        float SH = Screen.PrimaryScreen.Bounds.Height;
+        float SW = Screen.PrimaryScreen.Bounds.Width;
 
         public FormMain()
         {
             InitializeComponent();
-
+            
             keyboardWatcher = eventHookFactory.GetKeyboardWatcher();
             keyboardWatcher.OnKeyboardInput += (s, e) =>
             {
@@ -157,6 +183,10 @@ namespace WinformExample
             keyboardWatcher.Start(events);
             mouseWatcher.Start(events);
         }
+        public void start(IKeyboardMouseEvents events = null)
+        {
+            keyboardWatcher.Start(events);
+        }
 
         public void StopWatch()
         {
@@ -177,7 +207,7 @@ namespace WinformExample
             hotkey.OnHotkey += Hotkey_OnHotkey;
             this.hotkeyRecordId = hotkey.RegisterHotkey(Keys.Scroll, Hotkey.KeyFlags.NONE);
             this.hotkeyPlaybackId = hotkey.RegisterHotkey(Keys.Scroll, Hotkey.KeyFlags.MOD_ALT);
-
+            this.hotkeyDemoId = hotkey.RegisterHotkey(Keys.F1, Hotkey.KeyFlags.NONE);
             #region Combination
             //var record = Combination.TriggeredBy(Keys.F10).With(Keys.Control);
             //var playback = Combination.TriggeredBy(Keys.F12).With(Keys.Control);
@@ -201,6 +231,9 @@ namespace WinformExample
             }
             else if (HotKeyID == hotkeyPlaybackId)
                 this.Playback();
+            else if (HotKeyID == hotkeyDemoId)
+                this.demo();
+
         }
 
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -463,12 +496,23 @@ namespace WinformExample
         }
         private void btnDemo_Click(object sender, EventArgs e)
         {
+            string cishu= textBox1.Text;
+            int ci = Convert.ToInt32(cishu);
+            while (ci>0)
+            {
+                demo();
+                ci--;
+            }
+        }
+        public void demo()
+        {
             Random ran = new Random();
-            
+
             var sim = new InputSimulator();
             sim.Keyboard
+               .Sleep(5000)
                .KeyPress(VirtualKeyCode.TAB)
-               .Sleep(500+ ran.Next(100))
+               .Sleep(500 + ran.Next(100))
                .KeyPress(VirtualKeyCode.TAB)
                .Sleep(500)
                .KeyPress(VirtualKeyCode.VK_2)
@@ -477,22 +521,22 @@ namespace WinformExample
                .Sleep(2800 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_3)
                .Sleep(100)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyDown(VirtualKeyCode.VK_A)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyUp(VirtualKeyCode.VK_A)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyDown(VirtualKeyCode.VK_A)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyUp(VirtualKeyCode.VK_A)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyDown(VirtualKeyCode.VK_A)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyUp(VirtualKeyCode.VK_A)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_A)
+               .KeyDown(VirtualKeyCode.VK_A)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_A)
-               .Sleep(800)
+               .KeyUp(VirtualKeyCode.VK_A)
+               .Sleep(800 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_4)
                .Sleep(1800 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_4)
@@ -511,31 +555,32 @@ namespace WinformExample
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_8)
                .Sleep(700 + ran.Next(100))
-               .KeyPress(VirtualKeyCode.SPACE)
-               
+
                .KeyPress(VirtualKeyCode.VK_8)
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.SPACE)
-               
+               .KeyPress(VirtualKeyCode.VK_0)
+               .Sleep(100)
+               .KeyPress(VirtualKeyCode.VK_2)
                .KeyPress(VirtualKeyCode.VK_1)
                .Sleep(2800 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_3)
                .Sleep(100)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyDown(VirtualKeyCode.VK_D)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyUp(VirtualKeyCode.VK_D)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyDown(VirtualKeyCode.VK_D)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyUp(VirtualKeyCode.VK_D)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyDown(VirtualKeyCode.VK_D)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyUp(VirtualKeyCode.VK_D)
                .Sleep(200)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyDown(VirtualKeyCode.VK_D)
                .Sleep(500)
-               .KeyPress(VirtualKeyCode.VK_D)
+               .KeyUp(VirtualKeyCode.VK_D)
                .Sleep(800 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_4)
                .Sleep(1800)
@@ -547,7 +592,7 @@ namespace WinformExample
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_7)
                .Sleep(1000 + ran.Next(100))
-               
+
                .KeyPress(VirtualKeyCode.VK_K)
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.VK_K)
@@ -555,19 +600,123 @@ namespace WinformExample
                .KeyPress(VirtualKeyCode.VK_8)
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.SPACE)
-               .Sleep(1000)
+               .Sleep(100)
+               .KeyPress(VirtualKeyCode.VK_6)
+               .Sleep(100)
+               .KeyPress(VirtualKeyCode.VK_7)
                .KeyPress(VirtualKeyCode.VK_8)
                .Sleep(1000 + ran.Next(100))
                .KeyPress(VirtualKeyCode.SPACE)
                .Sleep(1000)
+               .KeyPress(VirtualKeyCode.VK_3)
+               .Sleep(100)
+               .KeyPress(VirtualKeyCode.VK_4)
+               .Sleep(100)
 
                ;
 
 
-              // .TextEntry("notepad")
-              
+        }
 
-           
+        private void button3_Click(object sender, EventArgs e)
+        {
+            string name = textBox2.Text;
+            Process process = Process.GetProcessesByName(name)[0];
+            IntPtr s = process.MainWindowHandle;
+            textBox2.Text = s.ToString();
+            IntPtr gg = (IntPtr)Convert.ToInt32(textBox2.Text);
+            SetForegroundWindow(gg);
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            IntPtr s = (IntPtr)Convert.ToInt32(textBox3.Text);
+            int cishu = Convert.ToInt32(textBox4.Text);
+            RECT rect = new RECT();
+            GetWindowRect(s, ref rect);
+            float width = rect.Right - rect.Left;                        //窗口的宽度
+            float height = rect.Bottom - rect.Top;                   //窗口的高度
+            float x = rect.Left;
+            float y = rect.Top;
+            float mid_x = ((x + width / 2)/SW)*65535;
+            float mid_y = ((y + height / 2)/SH)*65535;
+            float f_width = width / SW * 65535;
+            float f_height = height / SW * 65535;
+            while (cishu > 0)
+            {
+                ShowWindow(s, 9);
+                SetForegroundWindow(s);
+                demo2(mid_x, mid_y, f_width, f_width);
+                
+                cishu--;
+            }
+        }
+        //int x, int y,int width, float heith
+        public void demo3()
+        {
+            Random ran = new Random();
+            
+            var sim = new InputSimulator();
+            sim.Mouse
+            .Sleep(3000)
+            .MoveMouseTo(30000,30000);
+            
+        }
+
+            public void demo2(float x,float y,float width,float heith)
+        {
+            Random ran = new Random();
+
+            var sim = new InputSimulator();
+            sim.Mouse
+                .Sleep(3000)
+
+                .MoveMouseTo(x - width / 10, y - heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x, y - heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x + width / 10, y - heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x - width / 10, y)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x, y)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x + width / 10, y)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x - width / 10, y + heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x, y + heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .MoveMouseTo(x + width / 10, y + heith / 10)
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100))
+                .RightButtonClick()
+                .Sleep(4000 + ran.Next(100));
         }
     }
 }
